@@ -41,7 +41,7 @@ function Get-Kernel-Updated () {
     Write-Host("Checking for Windows Subsystem for Linux Update...")
     $uninstall64 = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" | ForEach-Object { Get-ItemProperty $_.PSPath } | Select-Object DisplayName, Publisher, DisplayVersion, InstallDate
     if ($uninstall64.DisplayName -contains 'Windows Subsystem for Linux Update') {
-        return $true 
+        return $true
     } else {
         return $false
     }
@@ -55,6 +55,7 @@ function Get-WSLlist {
     $wslinstalls = $wslinstalls | Where-Object { $_ -ne 'Windows Subsystem for Linux Distributions:' }
     return $wslinstalls
 }
+
 function Get-WSLExistance ($distro) {
     # Check for the existence of a distro
     # return Installed as Bool
@@ -103,7 +104,7 @@ function Get-StoreDownloadLink ($distro) {
     $distro.URI = $apxLinks.href
     return $distro
 }
- 
+
 function Select-Distro () {
     # See: https://docs.microsoft.com/en-us/windows/wsl/install-manual
     # You can also use https://store.rg-adguard.net to get Appx links from Windows Store links
@@ -138,27 +139,6 @@ function Select-Distro () {
             'installed' = $false
         },
         [PSCustomObject]@{
-            'Name' = 'Kali'
-            'URI' = 'https://aka.ms/wsl-kali-linux-new'
-            'AppxName' = 'KaliLinux'
-            'winpe' = 'kali.exe'
-            'installed' = $false
-        },
-        [PSCustomObject]@{
-            'Name' = 'OpenSUSE Leap 42'
-            'URI' = 'https://aka.ms/wsl-opensuse-42'
-            'AppxName' = 'openSUSELeap42'
-            'winpe' = 'openSUSE-42.exe'
-            'installed' = $false
-        },
-        [PSCustomObject]@{
-            'Name' = 'SUSE Linux Enterprise Server 12'
-            'URI' = 'https://aka.ms/wsl-sles-12'
-            'AppxName' = 'SUSELinuxEnterpriseServer12'
-            'winpe' = 'SLES-12.exe'
-            'installed' = $false
-        },
-        [PSCustomObject]@{
             'Name' = 'Alpine'
             'StoreLink' = 'https://www.microsoft.com/en-us/p/alpine-wsl/9p804crf0395'
             'URI' = ''
@@ -166,14 +146,6 @@ function Select-Distro () {
             'winpe' = 'Alpine.exe'
             'installed' = $false
         }
-        # [PSCustomObject]@{
-        #     'Name' = 'Fedora Remix for WSL'
-        #     'URI' = 'https://github.com/WhitewaterFoundry/Fedora-Remix-for-WSL/releases/download/31.5.0/Fedora-Remix-for-WSL_31.5.0.0_x64_arm64.appxbundle'
-        #     'AppxName' = 'FedoraRemix'
-        #     'winpe' = 'fedora.exe'
-        #     'installed' = $false
-        #     'sideloadreqd' = $true # Sideloading not supported by this script... yet
-        # },
         # [PSCustomObject]@{
         #     'Name' = 'Ubuntu 20.04'
         #     'URI' = 'https://cloud-images.ubuntu.com/releases/focal/release/ubuntu-20.04-server-cloudimg-amd64-wsl.rootfs.tar.gz'
@@ -238,6 +210,14 @@ function Install-Distro ($distro) {
     }
 }
 
+function Map-NetworkDrive ($distro) {
+    if (Get-PSDrive "W" -ErrorAction SilentlyContinue) {
+        Write-Host "The W: drive is already in use. You can map the drive manually with path; \\wsl$\" + $distro.Name
+        return
+    }
+    New-PSDrive -Name "W" -PSProvider "FileSystem" -Persist -Scope "Global" -Root "\\wsl$\" + $distro.Name
+}
+
 if ($rebootRequired) {
     shutdown /t 120 /r /c "Reboot required to finish installing WSL2"
     $cancelReboot = Read-Host 'Cancel reboot for now (you still need to reboot and rerun to finish installing WSL2) [y/N]'
@@ -257,6 +237,7 @@ if ($rebootRequired) {
     wsl --set-default-version 2
     $distro = Select-Distro
     Install-Distro($distro)
+    Map-NetworkDrive($distro)
     if ($distro.AppxName.Length -gt 1) {
         Start-Process $distro.winpe
     } else {
