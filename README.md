@@ -1,14 +1,14 @@
 # WSL2setup
 
-This script allows you to quickly get up and running with WSL2 on Windows 10 Build 2004.
-This script allows allows for easy install of various Linux distros.
+This script allows you to quickly get up and running with WSL2 on Windows 10 Build 2004. It also installs Ubuntu 18.04.
+
 
 ## Quickstart
 
 To quickly get up and running with WSL2, open a new PowerShell window as "Admin" and run the following one-liner:
 
 ```posh
-iex ((New-Object System.Net.WebClient).DownloadString('https://git.io/JfKrM'))
+iex ((New-Object System.Net.WebClient).DownloadString('https://git.io/JJjcA'))
 ```
 
 You will have to run this one-liner twice.
@@ -27,7 +27,7 @@ Make sure that Dynamic Memory is _disabled_.
 To turn on nested virtualization on Windows Server 2016+ or Windows 10 you can use the following command:
 ```posh
 (Get-VM).Name # Get a list of VM names
-Set-VMProcessor -VMName [TestVMName] -ExposeVirtualizationExtensions $true 
+Set-VMProcessor -VMName [TestVMName] -ExposeVirtualizationExtensions $true
 ```
 
 WSL2 on a KVM-based VM with nested virtualization, does not appear to work.
