@@ -112,6 +112,12 @@ function Get-StoreDownloadLink( $distro ) {
     return $distro
 }
 
+function Add-FirewallRules {
+    # If all is lost, there is a workaround. Not a fan though.
+    # Set-NetFirewallProfile -DisabledInterfaceAliases "vEthernet (WSL)"
+    New-NetFirewallRule -DisplayName "WSL" -Direction Inbound  -InterfaceAlias "vEthernet (WSL)"  -Action Allow
+}
+
 function Install-Distro( $distro ) {
 
     function Import-WSL( $distro ) {
@@ -174,6 +180,7 @@ if ( $rebootRequired ) {
     if ( ! ( Get-WSLExistance( $distro ) ) ) {
         Install-Distro( $distro )
     }
+    Add-FirewallRules
     if ( $distro.AppxName.Length -gt 1 ) {
         Write-Host( "All done, launching shell." )
         Start-Process $distro.winpe
